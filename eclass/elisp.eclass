@@ -148,6 +148,9 @@ elisp_src_configure() { :; }
 
 elisp_src_compile() {
 	elisp-compile *.el
+	if [[ ${NATIVECOMP} -eq 1 ]]; then
+	   elisp-native-compile *.el
+	fi
 	if [[ -n ${ELISP_TEXINFO} ]]; then
 		makeinfo ${ELISP_TEXINFO} || die
 	fi
@@ -175,6 +178,9 @@ elisp_src_test() {
 
 elisp_src_install() {
 	elisp-install ${PN} *.el *.elc
+	if [[ ${NATIVECOMP} -eq 1 ]]; then
+		elisp-native-comp-install *.eln
+	fi
 	if [[ -n ${SITEFILE} ]]; then
 		if [[ -f "${FILESDIR}/${SITEFILE}" ]]; then
 			elisp-site-file-install "${FILESDIR}/${SITEFILE}"
