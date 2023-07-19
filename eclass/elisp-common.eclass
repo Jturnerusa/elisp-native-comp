@@ -668,6 +668,19 @@ elisp-site-file-install() {
 	eend ${ret} "elisp-site-file-install: doins failed" || die
 }
 
+# @FUNCTION: elisp-native-comp-install
+# @USAGE: <list of elisp files>
+# @DESCRIPTION:
+# Installs compiled Elisp files into the system wide "eln cache".
+
+elisp-native-comp-install() {
+	(
+		ELNCACHE=${ELNCACHE//@libdir@/$(get_libdir)}
+		ELNCACHE=${ELNCACHE//@native-comp-version-dir@/$(elisp-native-comp-version-dir)}
+		insinto ${ELNCACHE}
+		doins "$@"
+	)
+}
 # @FUNCTION: elisp-make-site-file
 # @USAGE: <filename> [subdirectory] [line]...
 # @DESCRIPTION:
