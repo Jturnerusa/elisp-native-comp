@@ -681,6 +681,22 @@ elisp-native-comp-install() {
 		doins "$@"
 	)
 }
+
+# @FUNCTION: elisp-native-comp-version-dir
+# @USAGE: no arguments required
+# @DESCRIPTION:
+# Returns the value of comp-native-version-dir.
+#
+# The comp-native-version-dir Emacs variable is a per-version unique directory name
+# which is used to look for Elisp binaries.
+#
+# This information is required at src_install time to determine where
+# to install the binaries.
+
+elisp-native-comp-version-dir() {
+	${EMACS} ${EMACSFLAGS} --eval '(princ comp-native-version-dir)' || die
+}
+
 # @FUNCTION: elisp-make-site-file
 # @USAGE: <filename> [subdirectory] [line]...
 # @DESCRIPTION:
