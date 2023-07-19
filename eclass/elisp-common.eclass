@@ -299,6 +299,19 @@ elisp-check-emacs-version() {
 	fi
 }
 
+# @FUNCTION elisp-check-native-comp
+# @DESCRIPTION:
+# Check that the active Emacs has support for native compilation.
+
+elisp-check-native-comp() {
+	${EMACS} ${EMACSFLAGS} --eval '(kill-emacs (if (ignore-errors (native-comp-available-p)) 0 1))'
+	if [[ $? -ne 0 ]]; then
+		eerror "The currently active Emacs does not support native compilation."
+		eerror "Enable the jit use for Emacs to use native compilation."
+		die "Native compilation not supported"
+	fi
+}
+
 # @FUNCTION: elisp-compile
 # @USAGE: <list of elisp files>
 # @DESCRIPTION:
