@@ -333,6 +333,38 @@ elisp-compile() {
 	eend $? "elisp-compile: batch-byte-compile failed" || die
 }
 
+# @FUNCTION: elisp-native-compile
+# @USAGE: <list of elisp files>
+# @DESCRIPTION:
+# Natively compile Emacs Lisp files.
+#
+# This function is intended to be used the same way that elisp-compile is used.
+#
+# Setting native-compile-target-directory is required to make Emacs write the
+# compiled files to a specific location, and by default it tries to write it
+# to the root filesystem. Setting it to default directory instructs Emacs
+# to use the current working directory as the output directory.
+#
+# Setting comp-native-version-dir makes Emacs write compiled files
+# to the native-compile-target-directory directly, which is the
+# current working directory. If set to the default value,
+# batch-native-compile will write compiled files to a versioned
+# subdirectory in native-compile-target-directory instead of
+# directly in the top level.
+
+elisp-native-compile() {
+	elisp-check-native-comp
+	ebegin "Natively compiling Elisp files"
+	${EMACS} \
+		${EMACSFLAGS} \
+		${BYTECOMPFLAGS} \
+		--eval "(setq native-compile-target-directory default-directory)" \
+		--eval "(setq comp-native-version-dir \"\")" \
+		-f batch-native-compile \
+		"$@"
+	eend $? "elisp-native-compile: batch-native-compile failed" || die
+}
+
 # @FUNCTION: elisp-make-autoload-file
 # @USAGE: [output file] [list of directories]
 # @DESCRIPTION:
