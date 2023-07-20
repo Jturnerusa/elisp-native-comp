@@ -241,6 +241,10 @@ _ELISP_EMACS_VERSION=""
 # for multiple versions of Emacs simultaneously.
 ELNCACHE=/usr/@libdir@/emacs/eln-cache/@native-comp-native-version-dir@
 
+# @ECLASS_VARIABLE: NATIVECOMP
+# @DESCRIPTION:
+# Toggle building and installing natively compiled Elisp binaries.
+NATIVECOMP=1
 elisp-emacs-version() {
 	local version ret tmout="timeout -k 5 55"
 	# Run without timeout if the command is not available
