@@ -245,6 +245,30 @@ ELNCACHE=/usr/@libdir@/emacs/eln-cache/@native-comp-native-version-dir@
 # @DESCRIPTION:
 # Toggle building and installing natively compiled Elisp binaries.
 NATIVECOMP=1
+
+# @ECLASS_VARIABLE: NATIVECOMPFLAGS
+# @DESCRIPTION:
+# Flags required to native compile Elisp files.
+#
+# native-compile-target-directory is the location used for outputting
+# compiled binaries. This is set to default-directory, which is in this case
+# the working directory of the Emacs process.
+#
+# The comp-native-version-dir is a version specific subdirectory created by
+# Emacs inside of native-compile-target-directory. Setting this to an empty
+# string causes Emacs to output compiled files directly in the target
+# directory.
+#
+# Most of the existing ebuilds and eclass logic expect compiled files
+# to be placed in the current working directory, and then install
+# the files with a *.el *.elc glob. Setting these variables allows
+# the native-comp workflow to be similar to this.
+
+NATIVECOMPFLAGS=(
+	--eval '(setq native-compile-target-directory default-directory)'
+	--eval '(setq comp-native-version-dir "")'
+)
+
 elisp-emacs-version() {
 	local version ret tmout="timeout -k 5 55"
 	# Run without timeout if the command is not available
