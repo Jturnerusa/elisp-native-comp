@@ -622,13 +622,30 @@ elisp-test() {
 # Install files in SITELISP directory.
 
 elisp-install() {
-	local subdir="$1"
+	local subdir="$1" source_files bytecode_files native_files file
 	shift
+	for file in "$@"; do
+		case "${file}" in
+			*.el) source_files+=("${file}") ;;
+			*.elc) bytecode_files+=("${file}") ;;
+			*.eln) native_files+=("${file}") ;;
+			*) die "not an elisp file: ${file}" ;;
+		esac
+		shift
+	done
 	ebegin "Installing Elisp files for GNU Emacs support"
 	( # subshell to avoid pollution of calling environment
 		insinto "${SITELISP}/${subdir}"
-		doins "$@"
+		doins ${source_files[@]} ${bytecode_files[@]}
 	)
+	if [[ ${NATIVECOMP} -eq 1 ]]; then
+		( # subshell to avoid pollution of calling environment
+			ELNCACHE="${ELNCACHE//@libdir@/$(get_libdir)}"
+			ELNCACHE="${ELNCACHE//@native-comp-native-version-dir@/$(elisp-native-comp-native-version-dir)}"
+			insinto "${ELNCACHE}"
+			doins ${native_files[@]}
+		)
+	fi
 	eend $? "elisp-install: doins failed" || die
 }
 
@@ -679,20 +696,6 @@ elisp-site-file-install() {
 	ret=$?
 	rm -f "${sf}"
 	eend ${ret} "elisp-site-file-install: doins failed" || die
-}
-
-# @FUNCTION: elisp-native-comp-install
-# @USAGE: <list of elisp files>
-# @DESCRIPTION:
-# Installs compiled Elisp files into the system wide "eln cache".
-
-elisp-native-comp-install() {
-	(
-		ELNCACHE=${ELNCACHE//@libdir@/$(get_libdir)}
-		ELNCACHE=${ELNCACHE//@native-comp-version-dir@/$(elisp-native-comp-version-dir)}
-		insinto ${ELNCACHE}
-		doins "$@"
-	)
 }
 
 # @FUNCTION: elisp-native-comp-version-dir
