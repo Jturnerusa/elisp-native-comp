@@ -137,15 +137,12 @@ elisp_src_configure() { :; }
 
 # @FUNCTION: elisp_src_compile
 # @DESCRIPTION:
-# Call elisp-compile to byte-compile all Emacs Lisp (*.el) files.
+# Call elisp-compile to compile all Emacs Lisp (*.el) files.
 # If ELISP_TEXINFO lists any Texinfo sources, call makeinfo to generate
 # GNU Info files from them.
 
 elisp_src_compile() {
 	elisp-compile *.el
-	if [[ ${NATIVECOMP} -eq 1 ]]; then
-	   elisp-native-compile *.el
-	fi
 	if [[ -n ${ELISP_TEXINFO} ]]; then
 		makeinfo ${ELISP_TEXINFO} || die
 	fi
@@ -172,10 +169,7 @@ elisp_src_test() {
 # ELISP_TEXINFO and documentation listed in the DOCS variable.
 
 elisp_src_install() {
-	elisp-install ${PN} *.el *.elc
-	if [[ ${NATIVECOMP} -eq 1 ]]; then
-		elisp-native-comp-install *.eln
-	fi
+	elisp-install ${PN} *.el *.elc *.eln
 	if [[ -n ${SITEFILE} ]]; then
 		if [[ -f "${FILESDIR}/${SITEFILE}" ]]; then
 			elisp-site-file-install "${FILESDIR}/${SITEFILE}"
