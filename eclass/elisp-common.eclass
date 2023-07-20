@@ -239,7 +239,7 @@ _ELISP_EMACS_VERSION=""
 # Different versions of Emacs will have a different value
 # for native-comp-version-dir which allows having compiled files
 # for multiple versions of Emacs simultaneously.
-ELNCACHE=/usr/@libdir@/emacs/eln-cache/@native-comp-version-dir@
+ELNCACHE=/usr/@libdir@/emacs/eln-cache/@native-comp-native-version-dir@
 
 elisp-emacs-version() {
 	local version ret tmout="timeout -k 5 55"
@@ -693,7 +693,7 @@ elisp-native-comp-install() {
 # This information is required at src_install time to determine where
 # to install the binaries.
 
-elisp-native-comp-version-dir() {
+elisp-native-comp-native-version-dir() {
 	${EMACS} ${EMACSFLAGS} --eval '(princ comp-native-version-dir)' || die
 }
 
