@@ -343,7 +343,7 @@ elisp-check-native-comp() {
 # @FUNCTION: elisp-compile
 # @USAGE: <list of elisp files>
 # @DESCRIPTION:
-# Byte-compile Emacs Lisp files.
+# Byte-compile, and optionally natively compile Emacs Lisp files.
 #
 # This function uses GNU Emacs to byte-compile all ".el" specified by
 # its arguments.  The resulting byte-code (".elc") files are placed in
@@ -352,45 +352,30 @@ elisp-check-native-comp() {
 # The current directory is added to the load-path.  This will ensure
 # that interdependent Emacs Lisp files are visible between themselves,
 # in case they require or load one another.
+#
+# In addition to compiling Elisp files to bytecode, this function
+# supports natively compiling Elisp files and installing them into
+# a system wide eln-cache.
+#
+# Note: set NATIVECOMP to 0 to disable native compilation.
 
 elisp-compile() {
 	elisp-check-emacs-version
 
-	ebegin "Compiling GNU Emacs Elisp files"
+	ebegin "Byte-compiling GNU Emacs Elisp files"
 	${EMACS} ${EMACSFLAGS} ${BYTECOMPFLAGS} -f batch-byte-compile "$@"
 	eend $? "elisp-compile: batch-byte-compile failed" || die
-}
 
-# @FUNCTION: elisp-native-compile
-# @USAGE: <list of elisp files>
-# @DESCRIPTION:
-# Natively compile Emacs Lisp files.
-#
-# This function is intended to be used the same way that elisp-compile is used.
-#
-# Setting native-compile-target-directory is required to make Emacs write the
-# compiled files to a specific location, and by default it tries to write it
-# to the root filesystem. Setting it to default directory instructs Emacs
-# to use the current working directory as the output directory.
-#
-# Setting comp-native-version-dir makes Emacs write compiled files
-# to the native-compile-target-directory directly, which is the
-# current working directory. If set to the default value,
-# batch-native-compile will write compiled files to a versioned
-# subdirectory in native-compile-target-directory instead of
-# directly in the top level.
-
-elisp-native-compile() {
-	elisp-check-native-comp
-	ebegin "Natively compiling Elisp files"
-	${EMACS} \
-		${EMACSFLAGS} \
-		${BYTECOMPFLAGS} \
-		--eval "(setq native-compile-target-directory default-directory)" \
-		--eval "(setq comp-native-version-dir \"\")" \
-		-f batch-native-compile \
-		"$@"
-	eend $? "elisp-native-compile: batch-native-compile failed" || die
+	if [[ ${NATIVECOMP} -eq 1 ]]; then
+		ebegin "Native-compiling GNU Emacs Elisp files"
+		${EMACS} \
+			${EMACSFLAGS} \
+			${BYTECOMPFLAGS} \
+			"${NATIVECOMPFLAGS[@]}" \
+			-f batch-native-compile \
+			"$@"
+		eend $? "elisp-compile: batch-native-compile failed" || die
+	fi
 }
 
 # @FUNCTION: elisp-make-autoload-file
