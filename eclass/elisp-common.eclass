@@ -372,7 +372,7 @@ elisp-compile() {
 			${EMACSFLAGS} \
 			${BYTECOMPFLAGS} \
 			"${NATIVECOMPFLAGS[@]}" \
-			-f batch-native-compile \
+			--eval '(batch-native-compile nil t)' \
 			"$@"
 		eend $? "elisp-compile: batch-native-compile failed" || die
 	fi
