@@ -642,8 +642,8 @@ elisp-install() {
 		( # subshell to avoid pollution of calling environment
 			ELNCACHE="${ELNCACHE//@libdir@/$(get_libdir)}"
 			ELNCACHE="${ELNCACHE//@native-comp-native-version-dir@/$(elisp-native-comp-native-version-dir)}"
-			insinto "${ELNCACHE}"
-			doins ${native_files[@]}
+			exeinto "${ELNCACHE}"
+			doexe ${native_files[@]}
 		)
 	fi
 	eend $? "elisp-install: doins failed" || die
