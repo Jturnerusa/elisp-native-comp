@@ -327,19 +327,6 @@ elisp-check-emacs-version() {
 	fi
 }
 
-# @FUNCTION elisp-check-native-comp
-# @DESCRIPTION:
-# Check that the active Emacs has support for native compilation.
-
-elisp-check-native-comp() {
-	${EMACS} ${EMACSFLAGS} --eval '(kill-emacs (if (ignore-errors (native-comp-available-p)) 0 1))'
-	if [[ $? -ne 0 ]]; then
-		eerror "The currently active Emacs does not support native compilation."
-		eerror "Enable the jit use for Emacs to use native compilation."
-		die "Native compilation not supported"
-	fi
-}
-
 # @FUNCTION: elisp-compile
 # @USAGE: <list of elisp files>
 # @DESCRIPTION:
@@ -698,21 +685,6 @@ elisp-site-file-install() {
 	eend ${ret} "elisp-site-file-install: doins failed" || die
 }
 
-# @FUNCTION: elisp-native-comp-version-dir
-# @USAGE: no arguments required
-# @DESCRIPTION:
-# Returns the value of comp-native-version-dir.
-#
-# The comp-native-version-dir Emacs variable is a per-version unique directory name
-# which is used to look for Elisp binaries.
-#
-# This information is required at src_install time to determine where
-# to install the binaries.
-
-elisp-native-comp-native-version-dir() {
-	${EMACS} ${EMACSFLAGS} --eval '(princ comp-native-version-dir)' || die
-}
-
 # @FUNCTION: elisp-make-site-file
 # @USAGE: <filename> [subdirectory] [line]...
 # @DESCRIPTION:
@@ -811,4 +783,32 @@ elisp-site-regen() {
 	fi
 
 	return 0
+}
+
+# @FUNCTION elisp-check-native-comp
+# @DESCRIPTION:
+# Check that the active Emacs has support for native compilation.
+
+elisp-check-native-comp() {
+	${EMACS} ${EMACSFLAGS} --eval '(kill-emacs (if (ignore-errors (native-comp-available-p)) 0 1))'
+	if [[ $? -ne 0 ]]; then
+		eerror "The currently active Emacs does not support native compilation."
+		eerror "Enable the jit use for Emacs to use native compilation."
+		die "Native compilation not supported"
+	fi
+}
+
+# @FUNCTION: elisp-native-comp-version-dir
+# @USAGE: no arguments required
+# @DESCRIPTION:
+# Returns the value of comp-native-version-dir.
+#
+# The comp-native-version-dir Emacs variable is a per-version unique directory name
+# which is used to look for Elisp binaries.
+#
+# This information is required at src_install time to determine where
+# to install the binaries.
+
+elisp-native-comp-native-version-dir() {
+	${EMACS} ${EMACSFLAGS} --eval '(princ comp-native-version-dir)' || die
 }
