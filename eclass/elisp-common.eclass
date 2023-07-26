@@ -656,8 +656,11 @@ elisp-modules-install() {
 # subdirectory in SITELISP, SITEETC, and EMACSMODULES, respectively.
 
 elisp-site-file-install() {
-	local sf="${1##*/}" my_pn="${2:-${PN}}" modules ret
-	local header=";;; ${PN} site-lisp configuration"
+	local sf="${1##*/}" my_pn="${2:-${PN}}" \
+		  header=";;; ${PN} site-lisp configuration" \
+		  modules="${EMACSMODULES//@libdir@/$(get_libdir)}" \
+		  nativelisp="${NATIVELISP//@libdir@/$(get_libdir)}" \
+		  modules ret
 
 	[[ ${sf} == [0-9][0-9]*-gentoo*.el ]] \
 		|| ewarn "elisp-site-file-install: bad name of site-init file"
@@ -665,10 +668,11 @@ elisp-site-file-install() {
 	sf="${T}/${sf}"
 	ebegin "Installing site initialisation file for GNU Emacs"
 	[[ $1 == "${sf}" ]] || cp "$1" "${sf}"
-	modules=${EMACSMODULES//@libdir@/$(get_libdir)}
 	sed -i -e "1{:x;/^\$/{n;bx;};/^;.*${PN}/I!s:^:${header}\n\n:;1s:^:\n:;}" \
 		-e "s:@SITELISP@:${EPREFIX}${SITELISP}/${my_pn}:g" \
 		-e "s:@SITEETC@:${EPREFIX}${SITEETC}/${my_pn}:g" \
+		-e "s:@NATIVELISP@:${EPREFIX}${nativelisp}/$(elisp-comp-native-version-dir)/${my_pn}:g" \
+		-e "s:@COMP_NATIVE_VERSION_DIR@:$(elisp-comp-native-version-dir):g" \
 		-e "s:@EMACSMODULES@:${EPREFIX}${modules}/${my_pn}:g;\$q" "${sf}"
 	( # subshell to avoid pollution of calling environment
 		insinto "${SITELISP}/site-gentoo.d"
