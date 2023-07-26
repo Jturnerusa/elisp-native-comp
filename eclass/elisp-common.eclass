@@ -230,16 +230,11 @@ _ELISP_EMACS_VERSION=""
 # @DESCRIPTION:
 # Output version of currently active Emacs.
 
-# @ECLASS_VARIABLE: ELNCACHE
+# @ECLASS_VARIABLE: NATIVELISP
 # @DESCRIPTION:
 # Directory to install natively compiled elisp binaries into.
-#
-# @native-comp-version-dir@ is an Emacs generated directory
-# that it looks for compiled files in during runtime.
-# Different versions of Emacs will have a different value
-# for native-comp-version-dir which allows having compiled files
-# for multiple versions of Emacs simultaneously.
-ELNCACHE=/usr/@libdir@/emacs/eln-cache/@native-comp-native-version-dir@
+
+NATIVELISP=/usr/@libdir@/emacs/gentoo-native-lisp
 
 # @ECLASS_VARIABLE: NATIVECOMP
 # @DESCRIPTION:
@@ -627,9 +622,8 @@ elisp-install() {
 	)
 	if [[ ${NATIVECOMP} -eq 1 ]]; then
 		( # subshell to avoid pollution of calling environment
-			ELNCACHE="${ELNCACHE//@libdir@/$(get_libdir)}"
-			ELNCACHE="${ELNCACHE//@native-comp-native-version-dir@/$(elisp-native-comp-native-version-dir)}"
-			exeinto "${ELNCACHE}"
+			NATIVELISP="${NATIVELISP//@libdir@/$(get_libdir)}"
+			exeinto "${NATIVELISP}/$(elisp-comp-native-version-dir)/${subdir}"
 			doexe ${native_files[@]}
 		)
 	fi
