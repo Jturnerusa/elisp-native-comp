@@ -792,7 +792,7 @@ elisp-check-native-comp() {
 	fi
 }
 
-# @FUNCTION: elisp-native-comp-version-dir
+# @FUNCTION: elisp-comp-native-version-dir
 # @USAGE: no arguments required
 # @DESCRIPTION:
 # Returns the value of comp-native-version-dir.
@@ -803,6 +803,6 @@ elisp-check-native-comp() {
 # This information is required at src_install time to determine where
 # to install the binaries.
 
-elisp-native-comp-native-version-dir() {
+elisp-comp-native-version-dir() {
 	${EMACS} ${EMACSFLAGS} --eval '(princ comp-native-version-dir)' || die
 }
