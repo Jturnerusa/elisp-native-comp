@@ -182,6 +182,8 @@ case ${EAPI} in
 	*) die "${ECLASS}: EAPI ${EAPI:-0} not supported" ;;
 esac
 
+IUSE="native-compilation"
+
 # @ECLASS_VARIABLE: SITELISP
 # @DESCRIPTION:
 # Directory where packages install Emacs Lisp files.
@@ -235,11 +237,6 @@ _ELISP_EMACS_VERSION=""
 # Directory to install natively compiled elisp binaries into.
 
 NATIVELISP=/usr/@libdir@/emacs/gentoo-native-lisp
-
-# @ECLASS_VARIABLE: NATIVECOMP
-# @DESCRIPTION:
-# Toggle building and installing natively compiled Elisp binaries.
-NATIVECOMP=1
 
 # @ECLASS_VARIABLE: NATIVECOMPFLAGS
 # @DESCRIPTION:
@@ -338,8 +335,6 @@ elisp-check-emacs-version() {
 # In addition to compiling Elisp files to bytecode, this function
 # supports natively compiling Elisp files and installing them into
 # a system wide eln-cache.
-#
-# Note: set NATIVECOMP to 0 to disable native compilation.
 
 elisp-compile() {
 	elisp-check-emacs-version
@@ -348,7 +343,7 @@ elisp-compile() {
 	${EMACS} ${EMACSFLAGS} ${BYTECOMPFLAGS} -f batch-byte-compile "$@"
 	eend $? "elisp-compile: batch-byte-compile failed" || die
 
-	if [[ ${NATIVECOMP} -eq 1 ]]; then
+	if use native-compilation; then
 		ebegin "Native-compiling GNU Emacs Elisp files"
 		${EMACS} \
 			${EMACSFLAGS} \
@@ -620,7 +615,7 @@ elisp-install() {
 		insinto "${SITELISP}/${subdir}"
 		doins ${source_files[@]} ${bytecode_files[@]}
 	)
-	if [[ ${NATIVECOMP} -eq 1 ]]; then
+	if use native-compilation; then
 		( # subshell to avoid pollution of calling environment
 			NATIVELISP="${NATIVELISP//@libdir@/$(get_libdir)}"
 			exeinto "${NATIVELISP}/$(elisp-comp-native-version-dir)/${subdir}"
