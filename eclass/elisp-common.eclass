@@ -67,15 +67,21 @@
 #
 # @SUBSECTION src_install() usage:
 #
-# The resulting compiled files (.elc) should be put in a subdirectory of
+# The resulting bytecode files (.elc) should be put in a subdirectory of
 # /usr/share/emacs/site-lisp/ which is named after the first argument
-# of elisp-install().  The following parameters are the files to be put
+# of elisp-install().
+#
+# Binaries (.eln) should be put in a subdirectory of
+# /usr/lib64/emacs/gentoo-native-lisp with the same subdirectory name
+# used for bytecode and source files in $SITELISP.
+#
+# The following parameters are the files to be put
 # in that directory.  Usually the subdirectory should be ${PN}, you can
 # choose something else, but remember to tell elisp-site-file-install()
 # (see below) the change, as it defaults to ${PN}.
 #
 # @CODE
-# 	elisp-install ${PN} *.el *.elc
+# 	elisp-install ${PN} *.el *.elc [*.eln]
 # @CODE
 #
 # To let the Emacs support be activated by Emacs on startup, you need
@@ -94,6 +100,17 @@
 # to extend Emacs' load-path as shown in the first non-comment line.
 # The elisp-site-file-install() function of this eclass will replace
 # "@SITELISP@" and "@SITEETC@" by the actual paths.
+#
+# If using native compilation, binaries should be placed into a
+# subdirectory in /usr/$libdir/emacs/gentoo-native-lisp. The
+# subdirectory should be the same that is used for site-lisp.
+# Using the binaries requires appending load-path with the path
+# $gentoo-native-lisp/$subdir and adding eln to load-suffixes.
+# Similar to before, elisp-site-file-install will replace the
+# token @NATIVELISP@ with the path $gentoo-native-lisp/$subdir,
+# and @COMP_NATIVE_VERSION_DIR@ with the output from the
+# elisp-comp-native-version-dir, which is a string containing
+# a combination of the Emacs version and a hash of the ABI.
 #
 # The next line tells Emacs to load the mode opening a file ending
 # with ".csv" and load functions depending on the context and needed
@@ -234,7 +251,7 @@ _ELISP_EMACS_VERSION=""
 
 # @ECLASS_VARIABLE: NATIVELISP
 # @DESCRIPTION:
-# Directory to install natively compiled elisp binaries into.
+# Directory to install elisp binaries into.
 
 NATIVELISP=/usr/@libdir@/emacs/gentoo-native-lisp
 
@@ -242,23 +259,12 @@ NATIVELISP=/usr/@libdir@/emacs/gentoo-native-lisp
 # @DESCRIPTION:
 # Flags required to native compile Elisp files.
 #
-# native-compile-target-directory is the location used for outputting
-# compiled binaries. This is set to default-directory, which is in this case
-# the working directory of the Emacs process.
-#
-# The comp-native-version-dir is a version specific subdirectory created by
-# Emacs inside of native-compile-target-directory. Setting this to an empty
-# string causes Emacs to output compiled files directly in the target
-# directory.
-#
-# Most of the existing ebuilds and eclass logic expect compiled files
-# to be placed in the current working directory, and then install
-# the files with a *.el *.elc glob. Setting these variables allows
-# the native-comp workflow to be similar to this.
+# native-compile-target-directory is the directory that binaries
+# are written to after compilation. This is set to default-directory,
+# which is in this case the working directory of the Emacs process.
 
 NATIVECOMPFLAGS=(
 	--eval '(setq native-compile-target-directory default-directory)'
-	--eval '(setq comp-native-version-dir "")'
 )
 
 elisp-emacs-version() {
@@ -328,13 +334,13 @@ elisp-check-emacs-version() {
 # its arguments.  The resulting byte-code (".elc") files are placed in
 # the same directory as their corresponding source file.
 #
+# When the native-compilation use flag is enabled, also compile
+# Elisp files into binaries, which are also placed in the same directory
+# as the source files.
+#
 # The current directory is added to the load-path.  This will ensure
 # that interdependent Emacs Lisp files are visible between themselves,
 # in case they require or load one another.
-#
-# In addition to compiling Elisp files to bytecode, this function
-# supports natively compiling Elisp files and installing them into
-# a system wide eln-cache.
 
 elisp-compile() {
 	elisp-check-emacs-version
@@ -596,7 +602,7 @@ elisp-test() {
 # @FUNCTION: elisp-install
 # @USAGE: <subdirectory> <list of files>
 # @DESCRIPTION:
-# Install files in SITELISP directory.
+# Install source and bytecode files into SITELISP, and binaries into NATIVELISP.
 
 elisp-install() {
 	local subdir="$1" source_files bytecode_files native_files file
@@ -647,8 +653,11 @@ elisp-modules-install() {
 # Install Emacs site-init file in SITELISP directory.  Automatically
 # inserts a standard comment header with the name of the package
 # (unless it is already present).  Tokens @SITELISP@, @SITEETC@,
-# and @EMACSMODULES@ are replaced by the path to the package's
+# @EMACSMODULES@, and @NATIVELISP@ are replaced by the path to the package's
 # subdirectory in SITELISP, SITEETC, and EMACSMODULES, respectively.
+#
+# @COMP_NATIVE_VERSION_DIR@ will be replaced by the output of
+# elisp-comp-native-version-dir.
 
 elisp-site-file-install() {
 	local sf="${1##*/}" my_pn="${2:-${PN}}" \
@@ -686,11 +695,16 @@ elisp-site-file-install() {
 #
 # @CODE
 # 	(add-to-list 'load-path "@SITELISP@")
+#
+#   (when (and (ignore-errors (native-comp-available-p))
+#              (string= comp-native-version-dir "@COMP_NATIVE_VERSION_DIR@"))
+#     (add-to-list 'load-path "@NATIVELISP@")
 # @CODE
 #
 # Additional arguments are appended as lines to the destination file.
-# Any @SITELISP@, @SITEETC@, and @EMACSMODULES@ tokens in these
-# arguments are replaced, as described for elisp-site-file-install.
+# Any @SITELISP@, @SITEETC@, @EMACSMODULES@, @NATIVELISP@, and
+# @COMP_NATIVE_VERSION_DIR@ tokens in these arguments are replaced,
+# as described for elisp-site-file-install.
 
 elisp-make-site-file() {
 	[[ $1 == [0-9][0-9]*-gentoo.el ]] \
