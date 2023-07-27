@@ -703,7 +703,15 @@ elisp-make-site-file() {
 
 	local f="${T}/$1" my_pn="${2:-${PN}}"
 	shift; shift
-	printf "%s\n" "(add-to-list 'load-path \"@SITELISP@\")" "$@" >"${f}" || die
+	printf '%s\n' \
+		   "(add-to-list 'load-path \"@SITELISP@\")" \
+		   "" \
+		   "(when (and (ignore-errors (native-comp-available-p))" \
+		   "           (string= comp-native-version-dir \"@COMP_NATIVE_VERSION_DIR@\"))" \
+		   "  (add-to-list 'load-path \"@NATIVELISP@\"))" \
+		   "" \
+		   "$@" \
+		   > "${f}" || die
 	elisp-site-file-install "${f}" "${my_pn}"
 }
 
