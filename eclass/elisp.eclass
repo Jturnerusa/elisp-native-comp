@@ -66,7 +66,7 @@
 # @ECLASS_VARIABLE: NATIVECOMP_BUILD_DIR
 # @DESCRIPTION:
 # Directory that Emacs writes compiled Elisp files to.
-NATIVECOMP_BUILD_DIR=${T}/eln-cache
+NATIVECOMP_BUILD_DIR=${T}/native-lisp
 
 inherit elisp-common
 
