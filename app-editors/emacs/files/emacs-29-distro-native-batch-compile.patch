@@ -1,0 +1,134 @@
+From 5d3c8fcbd0a7d5df707bbbeda00b49bb3e5862ce Mon Sep 17 00:00:00 2001
+From: John Turner <jturner.usa@gmail.com>
+Date: Sat, 22 Jul 2023 22:53:10 -0400
+Subject: [PATCH 1/4] don't clobber native-compile-target-directory in
+ batch-native-compile
+
+---
+ lisp/emacs-lisp/comp.el | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/lisp/emacs-lisp/comp.el b/lisp/emacs-lisp/comp.el
+index 322df0e86a1..1bd27fdf4e1 100644
+--- a/lisp/emacs-lisp/comp.el
++++ b/lisp/emacs-lisp/comp.el
+@@ -4309,7 +4309,8 @@ last directory in `native-comp-eln-load-path')."
+   (let ((comp-running-batch-compilation t)
+         (native-compile-target-directory
+             (if for-tarball
+-                (car (last native-comp-eln-load-path)))))
++                (car (last native-comp-eln-load-path))
++              native-compile-target-directory)))
+     (cl-loop for file in command-line-args-left
+              if (or (null byte+native-compile)
+                     (cl-notany (lambda (re) (string-match re file))
+-- 
+2.41.0
+
+
+From a1c8214e55c57298a97d5ac733e1936d027a14b5 Mon Sep 17 00:00:00 2001
+From: John Turner <jturner.usa@gmail.com>
+Date: Sat, 22 Jul 2023 23:51:35 -0400
+Subject: [PATCH 2/4] use native-compile in batch-native-compile
+
+---
+ lisp/emacs-lisp/comp.el | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lisp/emacs-lisp/comp.el b/lisp/emacs-lisp/comp.el
+index 1bd27fdf4e1..257bab47a96 100644
+--- a/lisp/emacs-lisp/comp.el
++++ b/lisp/emacs-lisp/comp.el
+@@ -4315,7 +4315,7 @@ last directory in `native-comp-eln-load-path')."
+              if (or (null byte+native-compile)
+                     (cl-notany (lambda (re) (string-match re file))
+                                native-comp-bootstrap-deny-list))
+-             collect (comp--native-compile file)
++             collect (native-compile file)
+              else
+              collect (byte-compile-file file))))
+ 
+-- 
+2.41.0
+
+
+From e54306b368449a9b195994496c2ccbe0345fc604 Mon Sep 17 00:00:00 2001
+From: John Turner <jturner.usa@gmail.com>
+Date: Sun, 23 Jul 2023 00:07:32 -0400
+Subject: [PATCH 3/4] add for-distro optional argument to batch-native-compile
+
+---
+ lisp/emacs-lisp/comp.el | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
+
+diff --git a/lisp/emacs-lisp/comp.el b/lisp/emacs-lisp/comp.el
+index 257bab47a96..d9cbb11a645 100644
+--- a/lisp/emacs-lisp/comp.el
++++ b/lisp/emacs-lisp/comp.el
+@@ -4295,16 +4295,21 @@ return the compiled function."
+   (comp--native-compile function-or-file nil output))
+ 
+ ;;;###autoload
+-(defun batch-native-compile (&optional for-tarball)
++(defun batch-native-compile (&optional for-tarball for-distro)
+   "Perform batch native compilation of remaining command-line arguments.
+ 
+ Native compilation equivalent of `batch-byte-compile'.
+ Use this from the command line, with `-batch'; it won't work
+ in an interactive Emacs session.
++
+ Optional argument FOR-TARBALL non-nil means the file being compiled
+ as part of building the source tarball, in which case the .eln file
+ will be placed under the native-lisp/ directory (actually, in the
+-last directory in `native-comp-eln-load-path')."
++last directory in `native-comp-eln-load-path').
++
++When FOR-DISTRO is non-nil, write compiled files directly in
++native-compile-target-directory and name the output files the
++same way byte-compile-file does, except with an eln extension."
+   (comp-ensure-native-compiler)
+   (let ((comp-running-batch-compilation t)
+         (native-compile-target-directory
+@@ -4312,10 +4317,11 @@ last directory in `native-comp-eln-load-path')."
+                 (car (last native-comp-eln-load-path))
+               native-compile-target-directory)))
+     (cl-loop for file in command-line-args-left
++             for output = (when for-distro (file-name-with-extension file "eln"))
+              if (or (null byte+native-compile)
+                     (cl-notany (lambda (re) (string-match re file))
+                                native-comp-bootstrap-deny-list))
+-             collect (native-compile file)
++             collect (native-compile file output)
+              else
+              collect (byte-compile-file file))))
+ 
+-- 
+2.41.0
+
+
+From e9f8ac72dd8e6e4317a8294e370baa826d2230a6 Mon Sep 17 00:00:00 2001
+From: John Turner <jturner.usa@gmail.com>
+Date: Sun, 23 Jul 2023 02:05:23 -0400
+Subject: [PATCH 4/4] handle names with no parent directory in
+ comp-compile-ctxt-to-file
+
+---
+ lisp/emacs-lisp/comp.el | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lisp/emacs-lisp/comp.el b/lisp/emacs-lisp/comp.el
+index d9cbb11a645..1a35de4798e 100644
+--- a/lisp/emacs-lisp/comp.el
++++ b/lisp/emacs-lisp/comp.el
+@@ -3675,7 +3675,7 @@ Prepare every function for final compilation and drive the C back-end."
+     (maphash (lambda (_ f)
+                (comp-log-func f 1))
+              (comp-ctxt-funcs-h comp-ctxt))
+-    (unless (file-exists-p dir)
++    (when (and dir (not (file-exists-p dir)))
+       ;; In case it's created in the meanwhile.
+       (ignore-error file-already-exists
+         (make-directory dir t)))
+-- 
+2.41.0
+

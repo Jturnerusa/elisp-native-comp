@@ -45,6 +45,8 @@ HOMEPAGE="https://www.gnu.org/software/emacs/"
 LICENSE="GPL-3+ FDL-1.3+ BSD HPND MIT W3C unicode PSF-2"
 IUSE="acl alsa aqua athena cairo dbus dynamic-loading games gfile gif +gmp gpm gsettings gtk gui gzip-el harfbuzz imagemagick +inotify jit jpeg json kerberos lcms libxml2 livecd m17n-lib mailutils motif png selinux sound source sqlite ssl svg systemd +threads tiff toolkit-scroll-bars tree-sitter valgrind webp wide-int +X Xaw3d xft +xpm xwidgets zlib"
 
+PATCHES=( "${FILESDIR}/emacs-29-distro-native-batch-compile.patch" )
+
 X_DEPEND="x11-libs/libICE
 	x11-libs/libSM
 	x11-libs/libX11
