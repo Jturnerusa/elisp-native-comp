@@ -51,6 +51,11 @@ src_prepare() {
 	echo "(setq magit-version \"${PV}\")" > magit-version.el || die
 }
 
+src_install() {
+	SITEFILE="" elisp_src_install
+	elisp-make-site-file "${SITEFILE}" "${PN}" "(autoload 'magit-status \"magit\" nil t)"
+}
+
 pkg_postinst() {
 	elisp_pkg_postinst
 
