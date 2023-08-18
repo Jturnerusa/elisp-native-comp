@@ -16,30 +16,11 @@ To prevent emacs from JIT compiling packages set ~native-comp-jit-compilation~ t
 
 *** TODO Todo: Make packages add themselves to the JIT compilation deny list, which allows using portage AOT compilation and JIT compilation at the same time.
 
-** Profile
-A basic profile is included that masks the ~native-compilation~ use flag by default, and unmasks it on a per-package basis.
-
-When packages are patched to be compatible with the new use flag, or if they already work, add them to the list.
-
-Sharing which packages you have tested would be very helpful which can be done by making a PR against this repo.
-
 ** USE flags
 Enable the ~native-compilation~ USE flag to enable native compilation on packages that inherit from ~elisp-common.eclass~ or ~elisp.eclass~.
 
 ** Importing and updating packages
-Fetch the ~master~ branch from ~gentoo.git~ and associate it with a local branch in your copy of this repo.
-
-#+begin_src bash
-  git fetch "${GENTOO_REPO}" "master:gentoo"
-#+end_src
-
-The new branch will allow to checkout files from ~${GENTOO_REPO}~.
-
-It is possible to checkout specific paths, for example, to update this repos ~app-emacs~ packages to the most recent versions available.
-
-#+begin_src bash
-  git checkout "gentoo" "app-emacs"
-#+end_src
+Add ~gentoo.git~ as a remote, then compare or checkout ebuilds from gentoo's ~master~ branch.
 
 * How does it work?
 
@@ -80,3 +61,5 @@ A few very small patches have been applied to ~comp.el~ to make ~batch-native-co
 Before patching, ~batch-native-compile~ would not respect ~native-compile-target-directory~, and only gave an option of using the last value of ~native-comp-eln-load-path~ which is intended to be used for binaries for packages built into emacs.
 
 Also before patching, ~batch-native-compile~ would mangle filenames. The name mangling algorithm uses hashes of the source files absolute filename and it's contents. Package managers such as portage typically compile files in a temporary directory and then move them into the root filesystem when installing, which breaks the name managling algorithm.
+
+These patches can be found in ~${elisp-native-comp}/app-editors/emacs/files~.
