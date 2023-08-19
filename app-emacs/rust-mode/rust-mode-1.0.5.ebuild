@@ -25,4 +25,12 @@ PATCHES=( "${FILESDIR}"/${P}-tests.patch )
 DOCS=( README.md )
 SITEFILE="50${PN}-gentoo.el"
 
+src_install() {
+	elisp-make-site-file "${SITEFILE}" \
+						 "${PN}" \
+						 "(autoload 'rust-mode \"rust-mode\" nil t)" \
+						 "(add-to-list 'auto-mode-alist '(\"\\.rs\\'\" . rust-mode))"
+	SITEFILE="" elisp_src_install
+}
+
 elisp-enable-tests ert "${S}" -l ${PN}-tests.el
